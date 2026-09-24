@@ -2,10 +2,32 @@ import { PrismaClient } from "@prisma/client";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-const databaseUrl =
-  process.env.DATABASE_URL ||
-  process.env.POSTGRES_PRISMA_URL ||
-  process.env.POSTGRES_URL;
+function resolveDatabaseUrl(): string | undefined {
+  if (process.env.DATABASE_URL) return process.env.DATABASE_URL;
+  if (process.env.oficiosExpressDB_PRISMA_DATABASE_URL) {
+    return process.env.oficiosExpressDB_PRISMA_DATABASE_URL;
+  }
+  if (process.env.oficiosExpressDB_DATABASE_URL) {
+    return process.env.oficiosExpressDB_DATABASE_URL;
+  }
+  if (process.env.oficiosExpressDB_POSTGRES_URL) {
+    return process.env.oficiosExpressDB_POSTGRES_URL;
+  }
+  if (process.env.POSTGRES_PRISMA_URL) return process.env.POSTGRES_PRISMA_URL;
+  if (process.env.POSTGRES_URL) return process.env.POSTGRES_URL;
+
+  // Búsqueda dinámica de cualquier variable inyectada por Vercel Storage
+  const dynamicKey = Object.keys(process.env).find(
+    (k) =>
+      k.endsWith("_PRISMA_DATABASE_URL") ||
+      k.endsWith("_DATABASE_URL") ||
+      k.endsWith("_POSTGRES_URL")
+  );
+
+  return dynamicKey ? process.env[dynamicKey] : undefined;
+}
+
+const databaseUrl = resolveDatabaseUrl();
 
 export const prisma =
   globalForPrisma.prisma ||
