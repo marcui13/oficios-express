@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
+  phone        String
+  passwordHash String
+  role         String        @default("client") // "client", "professional", "both"
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  professionalProfile ProfessionalProfile?
+  clientRequests      ContactRequest[]    @relation("ClientRequests")
+}
+
+model ProfessionalProfile {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  description String
+  trades      String   // JSON string: ["plomeria", "gas"]
+  zones       String   // JSON string: ["Distrito Centro", "Distrito Norte"]
+  whatsapp    String   // Ej: 5493411234567
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  requests    ContactRequest[] @relation("ProfessionalRequests")
+}
+
+model ContactRequest {
+  id             String              @id @default(cuid())
+  clientId       String
+  client         User                @relation("ClientRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  professionalId String
+  professional   ProfessionalProfile @relation("ProfessionalRequests", fields: [professionalId], references: [id], onDelete: Cascade)
+  trade          String              // Oficio solicitado
+  description    String              // Qué arreglo necesita
+  photos         String?             // JSON string: ["/uploads/img1.jpg"]
+  status         String              @default("pending") // "pending", "accepted", "rejected"
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+}
