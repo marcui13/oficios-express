@@ -6,6 +6,11 @@ export const metadata: Metadata = {
   title: "Oficios Express — Profesionales de confianza en Rosario",
   description:
     "Conectá con plomeros, electricistas, gasistas, albañiles y más profesionales en Rosario, Santa Fe. Contacto directo por WhatsApp.",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
