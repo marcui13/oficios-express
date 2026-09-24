@@ -73,70 +73,66 @@ export default async function HomePage({ searchParams }: PageProps) {
   const activeTradeObj = TRADES.find((t) => t.id === trade);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-8 sm:space-y-12">
       {/* Hero Header */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-slate-50 border-b border-slate-200 py-12 md:py-16">
+      <section className="relative overflow-hidden bg-gradient-to-b from-blue-50 to-slate-50 border-b border-slate-200 py-8 sm:py-14">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800 mb-4">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-800 mb-3">
               <MapPin className="h-3.5 w-3.5" />
               Exclusivo Rosario, Santa Fe
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl">
+            <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 sm:text-4xl md:text-5xl leading-tight">
               Solucioná los arreglos de tu casa con profesionales de oficio.
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-slate-600">
-              Elegí el oficio que necesitás, consultá los profesionales disponibles en tu zona de Rosario y contactalos directamente por WhatsApp.
+            <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
+              Elegí el oficio que necesitás, consultá los profesionales en tu zona de Rosario y contactalos directo por WhatsApp.
             </p>
           </div>
 
           {/* Filtros rápidos: Oficio y Zona */}
-          <div className="mt-8 rounded-2xl bg-white p-4 shadow-sm border border-slate-200">
+          <div className="mt-6 rounded-2xl bg-white p-3.5 sm:p-5 shadow-xs border border-slate-200">
             <form method="GET" action="/" className="grid grid-cols-1 sm:grid-cols-12 gap-3">
               <div className="sm:col-span-5">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Oficio
                 </label>
-                <div className="relative">
-                  <select
-                    name="trade"
-                    defaultValue={trade || ""}
-                    className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pl-3 pr-8 text-sm font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="">Todos los oficios</option>
-                    {TRADES.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  name="trade"
+                  defaultValue={trade || ""}
+                  className="w-full h-11 appearance-none rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Todos los oficios</option>
+                  {TRADES.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="sm:col-span-5">
-                <label className="block text-xs font-semibold text-slate-500 mb-1">
+                <label className="block text-xs font-semibold text-slate-600 mb-1">
                   Zona en Rosario
                 </label>
-                <div className="relative">
-                  <select
-                    name="zone"
-                    defaultValue={zone || ""}
-                    className="w-full appearance-none rounded-xl border border-slate-300 bg-white py-2.5 pl-3 pr-8 text-sm font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
-                  >
-                    <option value="">Todas las zonas</option>
-                    {ROSARIO_DISTRICTS.map((d) => (
-                      <option key={d} value={d}>
-                        {d}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <select
+                  name="zone"
+                  defaultValue={zone || ""}
+                  className="w-full h-11 appearance-none rounded-xl border border-slate-300 bg-white px-3 text-sm font-medium text-slate-800 focus:border-blue-500 focus:outline-none"
+                >
+                  <option value="">Todas las zonas</option>
+                  {ROSARIO_DISTRICTS.map((d) => (
+                    <option key={d} value={d}>
+                      {d}
+                    </option>
+                  ))}
+                </select>
               </div>
 
               <div className="sm:col-span-2 flex items-end">
                 <button
                   type="submit"
-                  className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 py-2.5 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 transition"
+                  className="w-full h-11 inline-flex items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white shadow-xs hover:bg-blue-700 active:scale-98 transition"
                 >
                   <Search className="h-4 w-4" />
                   Filtrar
@@ -149,41 +145,43 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* Catálogo de Oficios en Botones Rápidos */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold tracking-tight text-slate-900">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
             Oficios disponibles
           </h2>
           {trade && (
             <Link
               href="/"
-              className="text-xs font-medium text-blue-600 hover:underline"
+              className="text-xs font-semibold text-blue-600 hover:underline"
             >
               Ver todos
             </Link>
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-5 gap-2 sm:gap-3">
           {TRADES.map((t) => {
             const isSelected = trade === t.id;
             return (
               <Link
                 key={t.id}
                 href={isSelected ? "/" : `/?trade=${t.id}${zone ? `&zone=${encodeURIComponent(zone)}` : ""}`}
-                className={`flex flex-col items-center justify-center p-4 rounded-xl border text-center transition-all ${
+                className={`flex flex-col items-center justify-center p-2.5 sm:p-4 rounded-xl border text-center transition-all ${
                   isSelected
-                    ? "border-blue-600 bg-blue-50/70 text-blue-700 shadow-sm"
+                    ? "border-blue-600 bg-blue-50/80 text-blue-700 shadow-xs ring-1 ring-blue-600/30"
                     : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
                 }`}
               >
                 <div
-                  className={`flex h-11 w-11 items-center justify-center rounded-lg mb-2 ${
+                  className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-lg mb-1.5 sm:mb-2 ${
                     isSelected ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-700"
                   }`}
                 >
-                  <TradeIcon name={t.id} className="h-6 w-6" />
+                  <TradeIcon name={t.id} className="h-4 w-4 sm:h-5 sm:w-5" />
                 </div>
-                <span className="font-semibold text-sm">{t.name}</span>
+                <span className="font-semibold text-xs sm:text-sm line-clamp-1">
+                  {t.name}
+                </span>
               </Link>
             );
           })}
@@ -248,7 +246,7 @@ export default async function HomePage({ searchParams }: PageProps) {
               return (
                 <div
                   key={pro.id}
-                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-6 shadow-xs hover:border-slate-300 hover:shadow-sm transition"
+                  className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 sm:p-6 shadow-xs hover:border-slate-300 hover:shadow-sm transition"
                 >
                   <div>
                     {/* Header de la tarjeta */}
@@ -322,7 +320,7 @@ export default async function HomePage({ searchParams }: PageProps) {
 
       {/* Banner de propuesta de valor simple del MVP */}
       <section className="mx-auto max-w-6xl px-4 sm:px-6">
-        <div className="rounded-2xl bg-slate-900 text-white p-8 sm:p-10">
+        <div className="rounded-2xl bg-slate-900 text-white p-6 sm:p-10">
           <div className="max-w-2xl">
             <h2 className="text-xl sm:text-2xl font-bold">
               ¿Cómo funciona Oficios Express?

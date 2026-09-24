@@ -55,9 +55,9 @@ export default async function ProfessionalDetailPage({ params }: ProfilePageProp
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 py-8">
+    <div className="mx-auto max-w-4xl px-3.5 sm:px-6 py-5 sm:py-8">
       {/* Botón Volver */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 transition"
@@ -67,10 +67,10 @@ export default async function ProfessionalDetailPage({ params }: ProfilePageProp
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-6 sm:gap-8">
         {/* Columna Izquierda: Información del profesional */}
         <div className="md:col-span-7 space-y-6">
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-8 shadow-xs">
             <div className="flex items-start gap-4">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-700 font-bold text-2xl shadow-xs">
                 {pro.user.name.charAt(0).toUpperCase()}

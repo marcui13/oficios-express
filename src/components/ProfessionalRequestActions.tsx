@@ -18,7 +18,7 @@ export function ProfessionalRequestActions({ requestId }: ProfessionalRequestAct
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
       <button
         onClick={() => handleUpdate("accepted")}
         disabled={isPending}
