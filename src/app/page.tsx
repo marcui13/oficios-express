@@ -15,22 +15,34 @@ export default async function HomePage({ searchParams }: PageProps) {
   const { trade, zone } = await searchParams;
 
   // Consultar profesionales activos
-  const allPros = await prisma.professionalProfile.findMany({
-    where: {
-      isActive: true,
-    },
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
+  let allPros: Array<{
+    id: string;
+    description: string;
+    trades: string;
+    zones: string;
+    user: { name: string; email: string };
+  }> = [];
+
+  try {
+    allPros = await prisma.professionalProfile.findMany({
+      where: {
+        isActive: true,
+      },
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } catch (err) {
+    console.error("Error al consultar profesionales desde la base de datos:", err);
+  }
 
   // Filtrado en memoria para SQLite JSON
   const filteredPros = allPros.filter((pro) => {
