@@ -79,16 +79,23 @@ Todas las cuentas usan la contraseña: `password123`
 ## 📁 Estructura del Proyecto
 
 ```
+├── docs/                   # Documentación técnica, de negocio y producto
+│   ├── 00_INDICE_Y_RESUMEN_EJECUTIVO.md
+│   ├── 01_NEGOCIO/         # Modelos de negocio, GTM y KPIs
+│   ├── 02_PRODUCTO/        # Visión, Personas, User Stories y UX/UI
+│   └── 03_TECNICA/         # Arquitectura C4, DB, Seguridad y DevOps
 ├── prisma/
 │   ├── schema.prisma       # Modelos User, ProfessionalProfile, ContactRequest
 │   └── seed.ts             # Datos iniciales para Rosario
 ├── public/
 │   └── uploads/            # Fotos subidas por clientes
 ├── scripts/
+│   ├── db-sync.mjs         # Sincronización automática de BD en Vercel
 │   └── test-flows.ts       # Test automatizado de flujos de negocio
 ├── src/
 │   ├── app/
 │   │   ├── actions/        # Server actions (auth, requests, profile)
+│   │   ├── api/seed/       # Endpoint de inicialización segura en runtime
 │   │   ├── api/upload/     # Endpoint para subida de fotos
 │   │   ├── login/          # Inicio de sesión
 │   │   ├── registro/       # Registro de cliente o profesional
@@ -100,3 +107,15 @@ Todas las cuentas usan la contraseña: `password123`
 │   ├── components/         # Navbar, WhatsAppButton, TradeIcon, formularios
 │   └── lib/                # Prisma client, autenticación y constantes de Rosario
 ```
+
+---
+
+## 📚 Documentación Completa
+
+Para acceder a toda la documentación estratégica y técnica del proyecto:
+- [Resumen Ejecutivo e Índice General](file:///Users/agustinmarquardt/Documents/SourceCodes/oficios-express/docs/00_INDICE_Y_RESUMEN_EJECUTIVO.md)
+- [01 — Negocio (Modelo, GTM y KPIs)](file:///Users/agustinmarquardt/Documents/SourceCodes/oficios-express/docs/01_NEGOCIO/01_MODELO_DE_NEGOCIO_Y_ESTRATEGIA.md)
+- [02 — Producto (Visión, Personas, Historias de Usuario)](file:///Users/agustinmarquardt/Documents/SourceCodes/oficios-express/docs/02_PRODUCTO/01_VISION_Y_ALCANCE_DEL_PRODUCTO.md)
+- [03 — Técnica (Arquitectura C4, DB, Seguridad, Despliegue)](file:///Users/agustinmarquardt/Documents/SourceCodes/oficios-express/docs/03_TECNICA/01_ARQUITECTURA_DEL_SISTEMA.md)
+- [Guía de Carga a Google Drive](file:///Users/agustinmarquardt/Documents/SourceCodes/oficios-express/docs/GUIA_CARGA_GOOGLE_DRIVE.md)
+
