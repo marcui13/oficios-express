@@ -49,15 +49,27 @@ Resolver exclusivamente los dos flujos centrales de validación:
 
 3. **Inicializar y poblar la base de datos (con datos de prueba de Rosario):**
    ```bash
-   npx prisma db push
+   npm run db:push
    npm run seed
    ```
 
-4. **Iniciar el servidor de desarrollo:**
-   ```bash
-   npm run dev
-   ```
-   Abrí [http://localhost:3000](http://localhost:3000) en tu navegador.
+4. **Iniciar en modo desarrollo:**
+   - **Aplicación Web (Next.js):**
+     ```bash
+     npm run dev:web
+     ```
+     Abrí [http://localhost:3000](http://localhost:3000) en tu navegador.
+
+   - **Aplicación Móvil (React Native con Expo):**
+     ```bash
+     npm run dev:mobile
+     ```
+     Presioná `i` para abrir el simulador de iOS, `a` para emulador Android, `w` para web, o escaneá el QR con la app **Expo Go** en tu celular físico.
+
+   - **Ambas aplicaciones simultáneas (Turborepo):**
+     ```bash
+     npm run dev
+     ```
 
 ---
 
@@ -76,36 +88,34 @@ Todas las cuentas usan la contraseña: `password123`
 
 ---
 
-## 📁 Estructura del Proyecto
+## 📁 Estructura del Monorepo
 
 ```
-├── docs/                   # Documentación técnica, de negocio y producto
-│   ├── 00_INDICE_Y_RESUMEN_EJECUTIVO.md
-│   ├── 01_NEGOCIO/         # Modelos de negocio, GTM y KPIs
-│   ├── 02_PRODUCTO/        # Visión, Personas, User Stories y UX/UI
-│   └── 03_TECNICA/         # Arquitectura C4, DB, Seguridad y DevOps
-├── prisma/
-│   ├── schema.prisma       # Modelos User, ProfessionalProfile, ContactRequest
-│   └── seed.ts             # Datos iniciales para Rosario
-├── public/
-│   └── uploads/            # Fotos subidas por clientes
-├── scripts/
-│   ├── db-sync.mjs         # Sincronización automática de BD en Vercel
-│   └── test-flows.ts       # Test automatizado de flujos de negocio
-├── src/
-│   ├── app/
-│   │   ├── actions/        # Server actions (auth, requests, profile)
-│   │   ├── api/seed/       # Endpoint de inicialización segura en runtime
-│   │   ├── api/upload/     # Endpoint para subida de fotos
-│   │   ├── login/          # Inicio de sesión
-│   │   ├── registro/       # Registro de cliente o profesional
-│   │   ├── mis-solicitudes/# Bandeja de seguimiento del cliente
-│   │   ├── panel/          # Panel del profesional (solicitudes y perfil)
-│   │   ├── profesionales/  # Detalle público del profesional y formulario
-│   │   ├── layout.tsx      # Layout con navegación
-│   │   └── page.tsx        # Home con catálogo y filtros por zona de Rosario
-│   ├── components/         # Navbar, WhatsAppButton, TradeIcon, formularios
-│   └── lib/                # Prisma client, autenticación y constantes de Rosario
+oficios-express/
+├── apps/
+│   ├── web/                    # Aplicación Next.js 16 (Web + API REST)
+│   │   ├── prisma/             # Base de datos y seed de Rosario
+│   │   ├── public/             # Assets públicos y subidas
+│   │   └── src/app/
+│   │       ├── api/            # Endpoints REST (profesionales, auth, solicitudes)
+│   │       └── ...             # Páginas web existentes
+│   │
+│   └── mobile/                 # App nativa React Native (Expo SDK 57 + Expo Router)
+│       ├── assets/             # Iconos y splash nativo
+│       ├── metro.config.js     # Resolución de paquetes monorepo
+│       └── src/
+│           ├── app/            # Rutas móviles (Explorar, Profesional/[id], Solicitudes)
+│           ├── context/        # Estado de sesión (AuthContext)
+│           └── services/       # Cliente HTTP (api.ts) conectado a apps/web
+│
+├── packages/
+│   └── shared/                 # Paquete compartido (@oficios/shared)
+│       └── src/
+│           ├── constants.ts    # Oficios, Distritos de Rosario y WhatsApp helpers
+│           └── types.ts        # Interfaces y tipos de datos compartidos
+│
+├── package.json                # Workspaces de npm y scripts de orquestación
+└── turbo.json                  # Configuración de pipelines (Turborepo)
 ```
 
 ---
