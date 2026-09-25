@@ -7,13 +7,25 @@ import {
   ApiResponse,
 } from "@oficios/shared";
 import { Platform } from "react-native";
+import Constants from "expo-constants";
 
-// En desarrollo:
-// - iOS Simulator / Web: localhost:3000
-// - Android Emulator: 10.0.2.2:3000
-// - Dispositivo físico: IP local de tu máquina en la red WiFi (ej: 192.168.1.X:3000)
-const DEFAULT_HOST = Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || DEFAULT_HOST;
+// Detección automática de la IP de tu Mac en la red Wi-Fi
+// En dispositivos físicos (Expo Go), hostUri contiene la IP local de tu computadora (ej: 192.168.1.2)
+function getBaseUrl(): string {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+  const hostUri = Constants.expoConfig?.hostUri;
+  if (hostUri) {
+    const hostIp = hostUri.split(":")[0];
+    if (hostIp) {
+      return `http://${hostIp}:3000`;
+    }
+  }
+  return Platform.OS === "android" ? "http://10.0.2.2:3000" : "http://localhost:3000";
+}
+
+export const API_BASE_URL = getBaseUrl();
 
 let authToken: string | null = null;
 
