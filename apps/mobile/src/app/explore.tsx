@@ -1,180 +1,596 @@
-import { Image } from 'expo-image';
-import { SymbolView } from 'expo-symbols';
-import { Platform, Pressable, ScrollView, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  TextInput,
+  ActivityIndicator,
+  RefreshControl,
+  Linking,
+  Alert,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ContactRequestSummary } from "@oficios/shared";
+import { api } from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
-import { ExternalLink } from '@/components/external-link';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Collapsible } from '@/components/ui/collapsible';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
+export default function RequestsScreen() {
+  const { user, login, logout, isLoading: authLoading } = useAuth();
 
-export default function TabTwoScreen() {
-  const safeAreaInsets = useSafeAreaInsets();
-  const insets = {
-    ...safeAreaInsets,
-    bottom: safeAreaInsets.bottom + BottomTabInset + Spacing.three,
+  // Login form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  // Requests state
+  const [requests, setRequests] = useState<ContactRequestSummary[]>([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const fetchRequests = useCallback(async () => {
+    if (!user) return;
+    setLoadingRequests(true);
+    try {
+      const res = await api.getRequests();
+      if (res.success && res.data) {
+        setRequests(res.data);
+      }
+    } catch (err) {
+      console.warn("Error al cargar solicitudes:", err);
+    } finally {
+      setLoadingRequests(false);
+      setRefreshing(false);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      fetchRequests();
+    }
+  }, [user, fetchRequests]);
+
+  const handleLogin = async (customEmail?: string, customPassword?: string) => {
+    setLoginError("");
+    const targetEmail = customEmail || email;
+    const targetPassword = customPassword || password;
+
+    if (!targetEmail || !targetPassword) {
+      setLoginError("Completá tu email y contraseña");
+      return;
+    }
+
+    const res = await login({ email: targetEmail, password: targetPassword });
+    if (!res.success) {
+      setLoginError(res.error || "Credenciales incorrectas");
+    }
   };
-  const theme = useTheme();
 
-  const contentPlatformStyle = Platform.select({
-    android: {
-      paddingTop: insets.top,
-      paddingLeft: insets.left,
-      paddingRight: insets.right,
-      paddingBottom: insets.bottom,
-    },
-    web: {
-      paddingTop: Spacing.six,
-      paddingBottom: Spacing.four,
-    },
-  });
+  const handleStatusUpdate = async (id: string, newStatus: "accepted" | "rejected") => {
+    try {
+      const res = await api.updateRequestStatus(id, newStatus);
+      if (res.success) {
+        Alert.alert("Éxito", newStatus === "accepted" ? "Solicitud aceptada" : "Solicitud rechazada");
+        fetchRequests();
+      } else {
+        Alert.alert("Error", res.error || "No se pudo actualizar el estado");
+      }
+    } catch {
+      Alert.alert("Error", "Error de conexión");
+    }
+  };
+
+  const openWhatsApp = (phone: string, text: string) => {
+    const cleanPhone = phone.replace(/\D/g, "");
+    Linking.openURL(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(text)}`);
+  };
+
+  // Si no está autenticado, mostrar pantalla de inicio de sesión
+  if (!user) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.authScroll}>
+          <View style={styles.authCard}>
+            <Text style={styles.authTitle}>Iniciar Sesión</Text>
+            <Text style={styles.authSubtitle}>
+              Ingresá con tu cuenta para ver y gestionar tus solicitudes en Rosario.
+            </Text>
+
+            {loginError ? (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorBoxText}>{loginError}</Text>
+              </View>
+            ) : null}
+
+            <Text style={styles.label}>Correo Electrónico</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="tu@email.com"
+              placeholderTextColor="#94a3b8"
+              keyboardType="email-address"
+              autoCapitalize="none"
+              value={email}
+              onChangeText={setEmail}
+            />
+
+            <Text style={styles.label}>Contraseña</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Tu contraseña"
+              placeholderTextColor="#94a3b8"
+              secureTextEntry
+              value={password}
+              onChangeText={setPassword}
+            />
+
+            <TouchableOpacity
+              style={[styles.btnPrimary, authLoading && styles.btnDisabled]}
+              onPress={() => handleLogin()}
+              disabled={authLoading}
+            >
+              {authLoading ? (
+                <ActivityIndicator color="#ffffff" />
+              ) : (
+                <Text style={styles.btnPrimaryText}>Ingresar</Text>
+              )}
+            </TouchableOpacity>
+
+            {/* Accesos rápidos de prueba de Rosario */}
+            <View style={styles.demoSection}>
+              <Text style={styles.demoTitle}>Cuentas demo de Rosario:</Text>
+              <View style={styles.demoButtonsRow}>
+                <TouchableOpacity
+                  style={styles.btnDemo}
+                  onPress={() => handleLogin("sofia@cliente.com", "password123")}
+                >
+                  <Text style={styles.btnDemoText}>👤 Sofía (Cliente)</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.btnDemo}
+                  onPress={() => handleLogin("roberto@pro.com", "password123")}
+                >
+                  <Text style={styles.btnDemoText}>🔧 Roberto (Profesional)</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
+  // Usuario autenticado
+  const isProfessional = user.role === "professional";
 
   return (
-    <ScrollView
-      style={[styles.scrollView, { backgroundColor: theme.background }]}
-      contentInset={insets}
-      contentContainerStyle={[styles.contentContainer, contentPlatformStyle]}>
-      <ThemedView style={styles.container}>
-        <ThemedView style={styles.titleContainer}>
-          <ThemedText type="subtitle">Explore</ThemedText>
-          <ThemedText style={styles.centerText} themeColor="textSecondary">
-            This starter app includes example{'\n'}code to help you get started.
-          </ThemedText>
+    <SafeAreaView style={styles.container}>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchRequests(); }} />
+        }
+      >
+        {/* User Card */}
+        <View style={styles.userCard}>
+          <View style={styles.userCardHeader}>
+            <View>
+              <Text style={styles.userName}>{user.name}</Text>
+              <Text style={styles.userRole}>
+                {isProfessional ? "🔧 Profesional de Oficios" : "👤 Cliente"}
+              </Text>
+            </View>
+            <TouchableOpacity style={styles.btnLogout} onPress={logout}>
+              <Text style={styles.btnLogoutText}>Salir</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
-          <ExternalLink href="https://docs.expo.dev" asChild>
-            <Pressable style={({ pressed }) => pressed && styles.pressed}>
-              <ThemedView type="backgroundElement" style={styles.linkButton}>
-                <ThemedText type="link">Expo documentation</ThemedText>
-                <SymbolView
-                  tintColor={theme.text}
-                  name={{ ios: 'arrow.up.right.square', android: 'link', web: 'link' }}
-                  size={12}
-                />
-              </ThemedView>
-            </Pressable>
-          </ExternalLink>
-        </ThemedView>
+        {/* Solicitudes Title */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>
+            {isProfessional ? "Solicitudes Recibidas" : "Mis Solicitudes Enviadas"}
+          </Text>
+        </View>
 
-        <ThemedView style={styles.sectionsWrapper}>
-          <Collapsible title="File-based routing">
-            <ThemedText type="small">
-              This app has two screens: <ThemedText type="code">src/app/index.tsx</ThemedText> and{' '}
-              <ThemedText type="code">src/app/explore.tsx</ThemedText>
-            </ThemedText>
-            <ThemedText type="small">
-              The layout file in <ThemedText type="code">src/app/_layout.tsx</ThemedText> sets up
-              the tab navigator.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/router/introduction">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+        {loadingRequests ? (
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color="#2563eb" />
+            <Text style={styles.loaderText}>Actualizando solicitudes...</Text>
+          </View>
+        ) : requests.length === 0 ? (
+          <View style={styles.emptyCard}>
+            <Text style={styles.emptyTitle}>No hay solicitudes registradas</Text>
+            <Text style={styles.emptySubtitle}>
+              {isProfessional
+                ? "Cuando los clientes soliciten presupuestos en tus zonas, aparecerán acá."
+                : "Explorá profesionales en la pestaña principal y enviales una solicitud."}
+            </Text>
+          </View>
+        ) : (
+          requests.map((req) => {
+            const isAccepted = req.status === "accepted";
+            const isRejected = req.status === "rejected";
 
-          <Collapsible title="Android, iOS, and web support">
-            <ThemedView type="backgroundElement" style={styles.collapsibleContent}>
-              <ThemedText type="small">
-                You can open this project on Android, iOS, and the web. To open the web version,
-                press <ThemedText type="smallBold">w</ThemedText> in the terminal running this
-                project.
-              </ThemedText>
-              <Image
-                source={require('@/assets/images/tutorial-web.png')}
-                style={styles.imageTutorial}
-              />
-            </ThemedView>
-          </Collapsible>
+            return (
+              <View key={req.id} style={styles.requestCard}>
+                <View style={styles.requestHeader}>
+                  <View style={styles.tradeBadge}>
+                    <Text style={styles.tradeBadgeText}>{req.trade.toUpperCase()}</Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      isAccepted && styles.statusBadgeAccepted,
+                      isRejected && styles.statusBadgeRejected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.statusText,
+                        isAccepted && styles.statusTextAccepted,
+                        isRejected && styles.statusTextRejected,
+                      ]}
+                    >
+                      {isAccepted ? "Aceptada" : isRejected ? "Rechazada" : "Pendiente"}
+                    </Text>
+                  </View>
+                </View>
 
-          <Collapsible title="Images">
-            <ThemedText type="small">
-              For static images, you can use the <ThemedText type="code">@2x</ThemedText> and{' '}
-              <ThemedText type="code">@3x</ThemedText> suffixes to provide files for different
-              screen densities.
-            </ThemedText>
-            <Image source={require('@/assets/images/react-logo.png')} style={styles.imageReact} />
-            <ExternalLink href="https://reactnative.dev/docs/images">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+                <Text style={styles.requestDescription}>{req.description}</Text>
 
-          <Collapsible title="Light and dark mode components">
-            <ThemedText type="small">
-              This template has light and dark mode support. The{' '}
-              <ThemedText type="code">useColorScheme()</ThemedText> hook lets you inspect what the
-              user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-            </ThemedText>
-            <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-              <ThemedText type="linkPrimary">Learn more</ThemedText>
-            </ExternalLink>
-          </Collapsible>
+                {/* Info de la contraparte */}
+                {isProfessional && req.client && (
+                  <View style={styles.partyInfo}>
+                    <Text style={styles.partyLabel}>Cliente: {req.client.name}</Text>
+                    <Text style={styles.partyPhone}>Tel: {req.client.phone}</Text>
+                  </View>
+                )}
 
-          <Collapsible title="Animations">
-            <ThemedText type="small">
-              This template includes an example of an animated component. The{' '}
-              <ThemedText type="code">src/components/ui/collapsible.tsx</ThemedText> component uses
-              the powerful <ThemedText type="code">react-native-reanimated</ThemedText> library to
-              animate opening this hint.
-            </ThemedText>
-          </Collapsible>
-        </ThemedView>
-        {Platform.OS === 'web' && <WebBadge />}
-      </ThemedView>
-    </ScrollView>
+                {!isProfessional && req.professional?.user && (
+                  <View style={styles.partyInfo}>
+                    <Text style={styles.partyLabel}>Profesional: {req.professional.user.name}</Text>
+                    <Text style={styles.partyPhone}>WhatsApp: {req.professional.whatsapp}</Text>
+                  </View>
+                )}
+
+                {/* Acciones para el Profesional */}
+                {isProfessional && !isAccepted && !isRejected && (
+                  <View style={styles.actionButtonsRow}>
+                    <TouchableOpacity
+                      style={styles.btnAccept}
+                      onPress={() => handleStatusUpdate(req.id, "accepted")}
+                    >
+                      <Text style={styles.btnAcceptText}>✓ Aceptar</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.btnReject}
+                      onPress={() => handleStatusUpdate(req.id, "rejected")}
+                    >
+                      <Text style={styles.btnRejectText}>✕ Rechazar</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+
+                {/* Si está aceptada, botón para abrir WhatsApp */}
+                {isAccepted && (
+                  <TouchableOpacity
+                    style={styles.btnWhatsAppRequest}
+                    onPress={() => {
+                      const targetPhone = isProfessional
+                        ? req.client?.phone || ""
+                        : req.professional?.whatsapp || "";
+                      openWhatsApp(
+                        targetPhone,
+                        `Hola, te contacto sobre la solicitud de ${req.trade} en Oficios Express Rosario.`
+                      );
+                    }}
+                  >
+                    <Text style={styles.btnWhatsAppRequestText}>
+                      💬 Abrir conversación en WhatsApp
+                    </Text>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  scrollView: {
-    flex: 1,
-  },
-  contentContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
   container: {
-    maxWidth: MaxContentWidth,
+    flex: 1,
+    backgroundColor: "#f8fafc",
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 40,
+  },
+  authScroll: {
+    padding: 20,
+    justifyContent: "center",
     flexGrow: 1,
   },
-  titleContainer: {
-    gap: Spacing.three,
-    alignItems: 'center',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.six,
+  authCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
   },
-  centerText: {
-    textAlign: 'center',
+  authTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#0f172a",
+    marginBottom: 6,
   },
-  pressed: {
-    opacity: 0.7,
+  authSubtitle: {
+    fontSize: 14,
+    color: "#64748b",
+    marginBottom: 20,
+    lineHeight: 20,
   },
-  linkButton: {
-    flexDirection: 'row',
-    paddingHorizontal: Spacing.four,
-    paddingVertical: Spacing.two,
-    borderRadius: Spacing.five,
-    justifyContent: 'center',
-    gap: Spacing.one,
-    alignItems: 'center',
+  errorBox: {
+    backgroundColor: "#fef2f2",
+    padding: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#fecaca",
+    marginBottom: 16,
   },
-  sectionsWrapper: {
-    gap: Spacing.five,
-    paddingHorizontal: Spacing.four,
-    paddingTop: Spacing.three,
+  errorBoxText: {
+    color: "#b91c1c",
+    fontSize: 13,
   },
-  collapsibleContent: {
-    alignItems: 'center',
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#334155",
+    marginBottom: 6,
   },
-  imageTutorial: {
-    width: '100%',
-    aspectRatio: 296 / 171,
-    borderRadius: Spacing.three,
-    marginTop: Spacing.two,
+  input: {
+    backgroundColor: "#f8fafc",
+    borderWidth: 1,
+    borderColor: "#cbd5e1",
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    fontSize: 15,
+    color: "#0f172a",
+    marginBottom: 16,
   },
-  imageReact: {
-    width: 100,
-    height: 100,
-    alignSelf: 'center',
+  btnPrimary: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    marginTop: 4,
+  },
+  btnDisabled: {
+    opacity: 0.6,
+  },
+  btnPrimaryText: {
+    color: "#ffffff",
+    fontSize: 15,
+    fontWeight: "bold",
+  },
+  demoSection: {
+    marginTop: 24,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+  },
+  demoTitle: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#64748b",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  demoButtonsRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  btnDemo: {
+    flex: 1,
+    backgroundColor: "#eff6ff",
+    borderWidth: 1,
+    borderColor: "#bfdbfe",
+    borderRadius: 8,
+    paddingVertical: 8,
+    alignItems: "center",
+  },
+  btnDemoText: {
+    color: "#1d4ed8",
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  userCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+    marginBottom: 16,
+  },
+  userCardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  userName: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#0f172a",
+  },
+  userRole: {
+    fontSize: 13,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  btnLogout: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: "#f1f5f9",
+    borderRadius: 8,
+  },
+  btnLogoutText: {
+    color: "#64748b",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  sectionHeader: {
+    marginBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1e293b",
+  },
+  loaderContainer: {
+    paddingVertical: 30,
+    alignItems: "center",
+  },
+  loaderText: {
+    marginTop: 10,
+    color: "#64748b",
+    fontSize: 13,
+  },
+  emptyCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 24,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#1e293b",
+    marginBottom: 6,
+  },
+  emptySubtitle: {
+    fontSize: 13,
+    color: "#64748b",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  requestCard: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e2e8f0",
+  },
+  requestHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  tradeBadge: {
+    backgroundColor: "#eff6ff",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  tradeBadgeText: {
+    color: "#2563eb",
+    fontSize: 11,
+    fontWeight: "bold",
+  },
+  statusBadge: {
+    backgroundColor: "#fef3c7",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  statusBadgeAccepted: {
+    backgroundColor: "#dcfce7",
+  },
+  statusBadgeRejected: {
+    backgroundColor: "#fee2e2",
+  },
+  statusText: {
+    color: "#b45309",
+    fontSize: 11,
+    fontWeight: "600",
+  },
+  statusTextAccepted: {
+    color: "#15803d",
+  },
+  statusTextRejected: {
+    color: "#b91c1c",
+  },
+  requestDescription: {
+    fontSize: 14,
+    color: "#334155",
+    lineHeight: 20,
+    marginBottom: 10,
+  },
+  partyInfo: {
+    backgroundColor: "#f8fafc",
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 12,
+  },
+  partyLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#1e293b",
+  },
+  partyPhone: {
+    fontSize: 12,
+    color: "#64748b",
+    marginTop: 2,
+  },
+  actionButtonsRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f1f5f9",
+  },
+  btnAccept: {
+    flex: 1,
+    backgroundColor: "#16a34a",
+    paddingVertical: 9,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  btnAcceptText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  btnReject: {
+    flex: 1,
+    backgroundColor: "#ef4444",
+    paddingVertical: 9,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  btnRejectText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "bold",
+  },
+  btnWhatsAppRequest: {
+    backgroundColor: "#16a34a",
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginTop: 6,
+  },
+  btnWhatsAppRequestText: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "bold",
   },
 });
