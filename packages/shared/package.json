@@ -5,8 +5,7 @@
   "main": "./src/index.ts",
   "types": "./src/index.ts",
   "scripts": {
-    "dev": "echo 'shared ready'",
-    "build": "echo 'shared ready'"
+    "dev": "echo 'shared ready'"
   },
   "devDependencies": {
     "typescript": "^5"
