@@ -51,7 +51,7 @@ if (
 }
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  transpilePackages: ["@oficios/shared"],
 };
 
 export default nextConfig;
