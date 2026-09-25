@@ -48,6 +48,15 @@ export async function getSession(): Promise<SessionPayload | null> {
   return verifySession(token);
 }
 
+export async function getSessionFromRequest(request: Request): Promise<SessionPayload | null> {
+  const authHeader = request.headers.get("Authorization");
+  if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = authHeader.slice(7).trim();
+    return verifySession(token);
+  }
+  return getSession();
+}
+
 export async function getCurrentUser() {
   const session = await getSession();
   if (!session) return null;
