@@ -11,7 +11,7 @@
     "dev": "turbo dev",
     "dev:web": "npm run dev --workspace=@oficios/web",
     "dev:mobile": "npm run dev --workspace=@oficios/mobile",
-    "build": "turbo build && (cp -R apps/web/.next .next 2>/dev/null || true)",
+    "build": "turbo build && rm -rf .next && cp -R apps/web/.next .next",
     "build:web": "npm run build --workspace=@oficios/web",
     "lint": "turbo lint",
     "seed": "npm run seed --workspace=@oficios/web",
