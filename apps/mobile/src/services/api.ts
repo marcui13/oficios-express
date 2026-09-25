@@ -53,13 +53,26 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       headers,
     });
 
-    const data = await res.json();
-    return data as ApiResponse<T>;
+    const contentType = res.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      const data = await res.json();
+      return data as ApiResponse<T>;
+    } else {
+      const errorText = await res.text();
+      const friendlyError = res.status === 404
+        ? `Endpoint ${endpoint} no encontrado en ${API_BASE_URL} (código 404). Verificá que la versión con la API esté deployada en Vercel.`
+        : `Servidor devolvió status ${res.status}: ${errorText.slice(0, 100)}`;
+      console.warn(`[API] ${friendlyError}`);
+      return {
+        success: false,
+        error: friendlyError,
+      };
+    }
   } catch (err: any) {
-    console.warn(`[API] Falló la petición a ${endpoint}:`, err?.message || err);
+    console.warn(`[API] Error de red hacia ${API_BASE_URL}${endpoint}:`, err?.message || err);
     return {
       success: false,
-      error: "No se pudo conectar con el servidor de Rosario (verificá que Next.js esté corriendo)",
+      error: "No se pudo conectar con el servidor (verificá conexión o que el backend esté disponible)",
     };
   }
 }

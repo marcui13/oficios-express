@@ -372,10 +372,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: "center",
     marginBottom: 16,
-    shadowColor: "#16a34a",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
+    boxShadow: "0px 2px 4px rgba(22, 163, 74, 0.2)",
     elevation: 2,
   },
   btnWhatsAppHeroText: {
