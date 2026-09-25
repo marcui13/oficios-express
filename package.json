@@ -1,39 +1,22 @@
 {
-  "name": "oficios-express",
+  "name": "oficios-express-monorepo",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "node scripts/db-sync.mjs && next build --webpack",
-    "postinstall": "prisma generate",
-    "start": "next start",
-    "lint": "eslint",
-    "seed": "tsx prisma/seed.ts",
-    "db:push": "prisma db push"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
-  },
-  "dependencies": {
-    "@prisma/client": "^6.19.3",
-    "bcryptjs": "^3.0.3",
-    "jose": "^6.2.12",
-    "lucide-react": "^1.47.0",
-    "next": "16.3.6",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "dev": "turbo dev",
+    "dev:web": "npm run dev --workspace=@oficios/web",
+    "dev:mobile": "npm run dev --workspace=@oficios/mobile",
+    "build": "turbo build",
+    "build:web": "npm run build --workspace=@oficios/web",
+    "lint": "turbo lint",
+    "seed": "npm run seed --workspace=@oficios/web",
+    "db:push": "npm run db:push --workspace=@oficios/web"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/bcryptjs": "^2.4.6",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.6",
-    "prisma": "^6.19.3",
-    "tailwindcss": "^4",
-    "tsx": "^4.23.15",
-    "typescript": "^5"
+    "turbo": "^2.4.4"
   }
 }
