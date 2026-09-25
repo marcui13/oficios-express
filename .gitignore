@@ -24,6 +24,8 @@ out/
 .expo/
 dist/
 web-build/
+ios/
+android/
 
 # production
 build/
